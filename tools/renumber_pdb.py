@@ -5,7 +5,7 @@ and optionally converts ATOM records to HETATM for specified chains.
 """
 
 import sys
-from typing import Optional, Set, Union
+from typing import Optional, Set, Union, List
 
 def renumber_pdb_residues(pdb_file: str, hetatm_chains: Optional[Union[List[str], Set[str]]] = None):
     """
