@@ -326,9 +326,7 @@ def add_cde_line_to_pir(clean_ali_path: str, cde_ali_path: str,
     ss_index = 0
 
     for char_in_alignment in aligned_target_seq_temp:
-        if char_in_alignment == '-':
-            cde_content += '.'
-        elif char_in_alignment == '/': # Handle chain break as a gap in SS
+        if char_in_alignment == '-' or char_in_alignment == '.' or char_in_alignment == '/':
             cde_content += '.'
         else: # Is an AA or a BLK
             if ss_index < len(ss_string_full):
