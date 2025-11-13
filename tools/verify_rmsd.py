@@ -182,19 +182,53 @@ if __name__ == '__main__':
     ORIGINAL_PDB = 'pdb-from-pdb.pdb'
     MODEL_PDB = 'pdb-from-prism.pdb'
     
-    # --- CONFIGURE YOUR MAPPING HERE ---
-    # Map 1-166 (Orig) to 307-472 (Mod)
+    RANGE_CONFIG = {
+        # Example (original-start, original-end, model-start)
+        # Example (1-51 -> 57-107) (end is obvious)
+        # 'segment_1': (1, 52, 57),
+        
+        "segment_1": (1, 53, 57),
+        "segment_2": (53, 304, 164),
+        "segment_3": (304, 312, 427),
+        "segment_4": (312, 626, 438),
+        "segment_5": (626, 627, 754),
+        "segment_6": (627, 863, 756)
     
-    orig_res = list(range(1, 167))      # 1 to 166
-    mod_res = list(range(307, 473))   # 307 to 472
+    }
     
-    if len(orig_res) != len(mod_res):
-        print("ERROR in script setup: mapping ranges do not match.")
-        print(f"Original: {len(orig_res)} residues, Model: {len(mod_res)} residues")
+    RESIDUE_MAPPING = {}
+    print("\nBuilding residue mapping RANGE_CONFIG:")
+    
+    try:
+        for name, (orig_start, orig_end, mod_start) in RANGE_CONFIG.items():
+            orig_res = list(range(orig_start, orig_end))
+            
+            mod_end = mod_start + len(orig_res)
+            mod_res = list(range(mod_start, mod_end))
+            
+            if not orig_res:
+                print(f"  - ATENCIÓN: Rango '{name}' está vacío. Saltando.")
+                continue
+                
+            print(f"  - '{name}': Mapping {len(orig_res)} residues.")
+            print(f"    - Original: {orig_start}-{orig_end-1}")
+            print(f"    - Model:    {mod_start}-{mod_end-1}")
+
+            for i, o_res in enumerate(orig_res):
+                m_res = mod_res[i]
+                if o_res in RESIDUE_MAPPING:
+                    print(f"  ❌ ERROR: ¡Overlapping detected! Original residue {o_res} was mapped earlier.")
+                    sys.exit(1)
+                RESIDUE_MAPPING[o_res] = m_res
+                
+    except (TypeError, ValueError) as e:
+        print(f"\n❌ ERROR: 'RANGE_CONFIG'not readable. Is the format correct?.")
+        print(f"Details: {e}")
         sys.exit(1)
         
-    RESIDUE_MAPPING = dict(zip(orig_res, mod_res))
-    
+    if not RESIDUE_MAPPING:
+        print("\n❌ ERROR: Mapping is empty.")
+        sys.exit(1)
     # -------------------------------------------------------------------
     
     if not os.path.exists(ORIGINAL_PDB):
@@ -207,7 +241,7 @@ if __name__ == '__main__':
     
     print(f"\nOriginal PDB:  {ORIGINAL_PDB}")
     print(f"Model PDB:    {MODEL_PDB}")
-    print(f"Residues to map and align: {len(RESIDUE_MAPPING)}")
+    print(f"Total residues to map: {len(RESIDUE_MAPPING)}")
     
     success = verify_fixed_coordinates(
         ORIGINAL_PDB, 
